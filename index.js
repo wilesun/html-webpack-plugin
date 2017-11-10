@@ -9,7 +9,7 @@ var prettyError = require('./lib/errors.js');
 var chunkSorter = require('./lib/chunksorter.js');
 Promise.promisifyAll(fs);
 
-function HtmlWebpackPlugin (options) {
+function HtmlWebpackPlugin(options) {
   // Default options
   this.options = _.extend({
     template: path.join(__dirname, 'default_index.ejs'),
@@ -71,7 +71,7 @@ HtmlWebpackPlugin.prototype.apply = function (compiler) {
     // Sort chunks
     chunks = self.sortChunks(chunks, self.options.chunksSortMode);
     // Let plugins alter the chunks and the chunk sorting
-    chunks = compilation.applyPluginsWaterfall('html-webpack-plugin-alter-chunks', chunks, { plugin: self });
+    chunks = compilation.applyPluginsWaterfall('html-webpack-plugin-alter-chunks', chunks, {plugin: self});
     // Get assets
     var assets = self.htmlWebpackPluginAssets(compilation, chunks);
     // If this is a hot update compilation, move on!
@@ -90,7 +90,7 @@ HtmlWebpackPlugin.prototype.apply = function (compiler) {
     }
 
     Promise.resolve()
-      // Favicon
+    // Favicon
       .then(function () {
         if (self.options.favicon) {
           return self.addFileToAssets(self.options.favicon, compilation)
@@ -124,9 +124,9 @@ HtmlWebpackPlugin.prototype.apply = function (compiler) {
           outputName: self.childCompilationOutputName,
           plugin: self
         })
-        .then(function () {
-          return compilationResult;
-        });
+          .then(function () {
+            return compilationResult;
+          });
       })
       // Execute the template
       .then(function (compilationResult) {
@@ -146,12 +146,18 @@ HtmlWebpackPlugin.prototype.apply = function (compiler) {
         var assets = result.assets;
         // Prepare script and link tags
         var assetTags = self.generateAssetTags(assets);
-        var pluginArgs = {head: assetTags.head, body: assetTags.body, plugin: self, chunks: chunks, outputName: self.childCompilationOutputName};
+        var pluginArgs = {
+          head: assetTags.head,
+          body: assetTags.body,
+          plugin: self,
+          chunks: chunks,
+          outputName: self.childCompilationOutputName
+        };
         // Allow plugins to change the assetTag definitions
         return applyPluginsAsyncWaterfall('html-webpack-plugin-alter-asset-tags', true, pluginArgs)
           .then(function (result) {
-              // Add the stylesheets, scripts and so on to the resulting html
-            return self.postProcessHtml(html, assets, { body: result.body, head: result.head })
+            // Add the stylesheets, scripts and so on to the resulting html
+            return self.postProcessHtml(html, assets, {body: result.body, head: result.head})
               .then(function (html) {
                 return _.extend(result, {html: html, assets: assets});
               });
@@ -248,7 +254,7 @@ HtmlWebpackPlugin.prototype.evaluateCompilationResult = function (compilation, s
 HtmlWebpackPlugin.prototype.executeTemplate = function (templateFunction, chunks, assets, compilation) {
   var self = this;
   return Promise.resolve()
-    // Template processing
+  // Template processing
     .then(function () {
       var templateParams = {
         compilation: compilation,
@@ -281,7 +287,7 @@ HtmlWebpackPlugin.prototype.postProcessHtml = function (html, assets, assetTags)
     return Promise.reject('Expected html to be a string but got ' + JSON.stringify(html));
   }
   return Promise.resolve()
-    // Inject
+  // Inject
     .then(function () {
       if (self.options.inject) {
         return self.injectAssetsIntoHtml(html, assets, assetTags);
@@ -308,22 +314,22 @@ HtmlWebpackPlugin.prototype.addFileToAssets = function (filename, compilation) {
     size: fs.statAsync(filename),
     source: fs.readFileAsync(filename)
   })
-  .catch(function () {
-    return Promise.reject(new Error('HtmlWebpackPlugin: could not load file ' + filename));
-  })
-  .then(function (results) {
-    var basename = path.basename(filename);
-    compilation.fileDependencies.push(filename);
-    compilation.assets[basename] = {
-      source: function () {
-        return results.source;
-      },
-      size: function () {
-        return results.size.size;
-      }
-    };
-    return basename;
-  });
+    .catch(function () {
+      return Promise.reject(new Error('HtmlWebpackPlugin: could not load file ' + filename));
+    })
+    .then(function (results) {
+      var basename = path.basename(filename);
+      compilation.fileDependencies.push(filename);
+      compilation.assets[basename] = {
+        source: function () {
+          return results.source;
+        },
+        size: function () {
+          return results.size.size;
+        }
+      };
+      return basename;
+    });
 };
 
 /**
@@ -382,8 +388,8 @@ HtmlWebpackPlugin.prototype.filterChunks = function (chunks, includedChunks, exc
 
 HtmlWebpackPlugin.prototype.isHotUpdateCompilation = function (assets) {
   return assets.js.length && assets.js.every(function (name) {
-    return /\.hot-update\.js$/.test(name);
-  });
+      return /\.hot-update\.js$/.test(name);
+    });
 };
 
 HtmlWebpackPlugin.prototype.htmlWebpackPluginAssets = function (compilation, chunks) {
@@ -396,7 +402,7 @@ HtmlWebpackPlugin.prototype.htmlWebpackPluginAssets = function (compilation, chu
     ? compilation.mainTemplate.getPublicPath({hash: compilationHash})
     // If no public path was set get a relative url path
     : path.relative(path.resolve(compilation.options.output.path, path.dirname(self.childCompilationOutputName)), compilation.options.output.path)
-      .split(path.sep).join('/');
+    .split(path.sep).join('/');
 
   if (publicPath.length && publicPath.substr(-1, 1) !== '/') {
     publicPath += '/';
@@ -514,7 +520,7 @@ HtmlWebpackPlugin.prototype.generateAssetTags = function (assets) {
   // Add scripts to body or head
   if (this.options.inject === 'head') {
     head = head.concat(scripts);
-  } else {
+  } else if (this.options.inject === 'body') {
     body = body.concat(scripts);
   }
   return {head: head, body: body};
